@@ -15,59 +15,64 @@ objetivamente a evolução realizada no projeto.
 
 O formato recomendado é:
 
-``` text
+```text
 <type>(<scope>): <description>
 ```
 
 Exemplo:
 
-``` text
+```text
 feat(auth): implement user authentication
 ```
 
-  Elemento        Finalidade
-  --------------- ------------------------------------------
-  `type`          Identifica a natureza da alteração.
-  `scope`         Identifica o módulo ou contexto afetado.
-  `description`   Resume objetivamente a alteração.
+Elemento Finalidade
+
+---
+
+`type` Identifica a natureza da alteração.
+`scope` Identifica o módulo ou contexto afetado.
+`description` Resume objetivamente a alteração.
 
 O `scope` deve ser utilizado sempre que houver um módulo ou contexto
 identificável.
 
 ## 3. Tipos de commit
 
-  -----------------------------------------------------------------------
-  Tipo                                Quando utilizar
-  ----------------------------------- -----------------------------------
-  `feat`                              Adição de uma funcionalidade.
+---
 
-  `fix`                               Correção de um defeito.
+Tipo Quando utilizar
 
-  `refactor`                          Reestruturação do código sem
-                                      alteração intencional de
-                                      comportamento.
+---
 
-  `test`                              Adição ou alteração de testes.
+`feat` Adição de uma funcionalidade.
 
-  `docs`                              Alterações na documentação.
+`fix` Correção de um defeito.
 
-  `style`                             Alterações de formatação que não
-                                      modificam o significado do código,
-                                      como espaços e ponto e vírgula.
+`refactor` Reestruturação do código sem
+alteração intencional de
+comportamento.
 
-  `perf`                              Melhoria de desempenho.
+`test` Adição ou alteração de testes.
 
-  `build`                             Alterações no processo de build ou
-                                      nas dependências.
+`docs` Alterações na documentação.
 
-  `ci`                                Alterações nos pipelines de
-                                      integração contínua.
+`style` Alterações de formatação que não
+modificam o significado do código,
+como espaços e ponto e vírgula.
 
-  `chore`                             Manutenção geral que não se
-                                      enquadra nos tipos anteriores.
+`perf` Melhoria de desempenho.
 
-  `revert`                            Reversão de um commit anterior.
-  -----------------------------------------------------------------------
+`build` Alterações no processo de build ou
+nas dependências.
+
+`ci` Alterações nos pipelines de
+integração contínua.
+
+`chore` Manutenção geral que não se
+enquadra nos tipos anteriores.
+
+`revert` Reversão de um commit anterior.
+-----------------------------------------------------------------------
 
 **Regra:** evite utilizar `chore` como categoria genérica. Sempre que
 possível, escolha o tipo mais específico.
@@ -78,7 +83,7 @@ O `scope` identifica a parte da aplicação afetada pelo commit.
 
 Exemplos:
 
-``` text
+```text
 feat(auth): implement login endpoint
 feat(users): add user registration
 feat(products): implement product search
@@ -102,13 +107,13 @@ Evite agrupar funcionalidades independentes em um único commit.
 
 Evite:
 
-``` text
+```text
 feat: implement authentication, user registration and product search
 ```
 
 Prefira:
 
-``` text
+```text
 feat(auth): implement authentication
 feat(users): implement user registration
 feat(products): implement product search
@@ -121,7 +126,7 @@ imperativo.
 
 Prefira:
 
-``` text
+```text
 feat(auth): implement authentication
 fix(users): validate email format
 refactor(products): extract product repository
@@ -129,7 +134,7 @@ refactor(products): extract product repository
 
 Evite:
 
-``` text
+```text
 feat(auth): implemented authentication
 fix(users): fixed email validation
 ```
@@ -138,7 +143,7 @@ fix(users): fixed email validation
 
 Não utilize mensagens sem significado claro, como:
 
-``` text
+```text
 update
 changes
 fixes
@@ -168,7 +173,7 @@ suficiente para explicar a alteração.
 
 Exemplo:
 
-``` text
+```text
 feat(auth): implement JWT authentication
 
 - Add authentication service
@@ -186,7 +191,7 @@ anteriores, sinalize-a com `!` após o tipo e o scope.
 
 Exemplo:
 
-``` text
+```text
 feat(api)!: change authentication response format
 
 BREAKING CHANGE: Authentication endpoints now return
@@ -200,7 +205,7 @@ O `!` sinaliza a existência de uma alteração incompatível. A seção
 
 Considere o desenvolvimento de um serviço de autenticação:
 
-``` text
+```text
 docs(auth): document authentication requirements
 
 build(auth): add authentication dependencies
@@ -227,29 +232,32 @@ acompanhar.
 
 ## 9. Convenções adotadas no Veridit
 
-  -----------------------------------------------------------------------
-  Convenção                           Decisão
-  ----------------------------------- -----------------------------------
-  Padrão                              Conventional Commits
+---
 
-  Idioma das mensagens                Inglês
+Convenção Decisão
 
-  Estrutura                           `type(scope): description`
+---
 
-  Scope                               Obrigatório sempre que houver um
-                                      módulo ou contexto identificável
+Padrão Conventional Commits
 
-  Descrição                           Imperativo, iniciando com letra
-                                      minúscula
+Idioma das mensagens Inglês
 
-  Tamanho do título                   Preferencialmente até 72 caracteres
+Estrutura `type(scope): description`
 
-  Body                                Opcional
+Scope Obrigatório sempre que houver um
+módulo ou contexto identificável
 
-  Breaking changes                    Utilizar `!` e `BREAKING CHANGE:`
+Descrição Imperativo, iniciando com letra
+minúscula
 
-  Granularidade                       Um commit por alteração lógica
-  -----------------------------------------------------------------------
+Tamanho do título Preferencialmente até 72 caracteres
+
+Body Opcional
+
+Breaking changes Utilizar `!` e `BREAKING CHANGE:`
+
+Granularidade Um commit por alteração lógica
+-----------------------------------------------------------------------
 
 O limite de 72 caracteres é uma recomendação de legibilidade, não uma
 exigência do Conventional Commits.
@@ -298,16 +306,16 @@ específica da documentação de engenharia do projeto.
 Dessa forma, o padrão de commits deixa de ser uma preferência individual
 e passa a ser uma convenção compartilhada pela equipe.
 
-------------------------------------------------------------------------
+---
 
 ## Resumo
 
--   Adotar **Conventional Commits** como padrão.
--   Utilizar mensagens em inglês.
--   Seguir a estrutura `type(scope): description`.
--   Manter scopes consistentes com os módulos da aplicação.
--   Criar um commit para cada alteração lógica.
--   Escrever descrições objetivas no imperativo.
--   Utilizar `!` e `BREAKING CHANGE:` para alterações incompatíveis.
--   Automatizar a validação com **Commitlint** e **Husky**.
--   Documentar as regras para todos os colaboradores.
+- Adotar **Conventional Commits** como padrão.
+- Utilizar mensagens em inglês.
+- Seguir a estrutura `type(scope): description`.
+- Manter scopes consistentes com os módulos da aplicação.
+- Criar um commit para cada alteração lógica.
+- Escrever descrições objetivas no imperativo.
+- Utilizar `!` e `BREAKING CHANGE:` para alterações incompatíveis.
+- Automatizar a validação com **Commitlint** e **Husky**.
+- Documentar as regras para todos os colaboradores.
