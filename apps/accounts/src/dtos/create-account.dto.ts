@@ -9,17 +9,17 @@ export type CreateAccountReq = {
     type: string
 }
 
-export interface CreateAccountDto {
-    name: string,
-    email: string,
-    password: string, 
-    cpf: string,
-    oab: string,
-    type: UserType
-}
+export class CreateAccountDto {
+    private constructor(
+        readonly name: string,
+        readonly email: string,
+        readonly password: string,
+        readonly cpf: string,
+        readonly oab: string,
+        readonly type: UserType,
+    ) {}
 
-export class CreateAccountValidator {
-    static toDto(createAccountReq: CreateAccountReq): CreateAccountDto | null {
+    static create(createAccountReq: CreateAccountReq): CreateAccountDto | null {
         const { name, email, password, cpf, oab, type } = createAccountReq
         
         if (typeof(name) !== 'string') return null
@@ -28,8 +28,6 @@ export class CreateAccountValidator {
         if (typeof(cpf) !== 'string') return null
         if (typeof(type) !== 'string' || (type !== 'COMMON' && type !== 'LAWYER')) return null
 
-        return {
-            name, email, password, cpf, oab, type: UserType[type]
-        }
+        return new CreateAccountDto(name, email, password, cpf, oab, UserType[type])
     }
 }
