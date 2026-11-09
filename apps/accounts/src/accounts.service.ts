@@ -4,11 +4,21 @@ import { JsonAccountsRepository } from './json-accounts.repository.js';
 import { Account } from './models/account.model.js';
 import { randomUUID } from 'node:crypto';
 import { UserType } from './enums/user-type.enum.js';
+import { PasswordHasher } from './interfaces/password-hasher.interface.js';
+import { PassThrough } from 'node:stream';
 
 @Injectable()
 export class AccountsService {
   private _repository = new JsonAccountsRepository()
-  private _passwordHasher = (password: string) => password
+  private _passwordHasher: PasswordHasher = {
+    hash(password: string) {
+      return password
+    },
+    compare(password) {
+      return password == this.hash(password)
+    }
+  }
+
   private _uuidGenerator = () => randomUUID()
 
   async createAccount(createAccountDto: CreateAccountDto): Promise<Account> {
@@ -46,7 +56,7 @@ export class AccountsService {
         this._uuidGenerator(),
         name,
         email,
-        this._passwordHasher(password),
+        this._passwordHasher.hash(password),
         cpf,
         oab,
         type,
@@ -57,7 +67,7 @@ export class AccountsService {
         this._uuidGenerator(),
         name,
         email,
-        this._passwordHasher(password),
+        this._passwordHasher.hash(password),
         cpf,
         null,
         type,
