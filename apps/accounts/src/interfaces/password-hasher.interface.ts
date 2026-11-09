@@ -1,4 +1,4 @@
 export interface PasswordHasher {
     hash: (password: string) => string
-    compare: (password: string) => boolean
+    compare: (password: string, hash: string) => boolean
 }
