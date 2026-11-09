@@ -5,7 +5,7 @@ export type CreateAccountReq = {
     email: string,
     password: string, 
     cpf: string,
-    oab: string,
+    oab?: string,
     type: string
 }
 
@@ -15,7 +15,7 @@ export class CreateAccountDto {
         readonly email: string,
         readonly password: string,
         readonly cpf: string,
-        readonly oab: string,
+        readonly oab: string | null,
         readonly type: UserType,
     ) {}
 
@@ -33,6 +33,6 @@ export class CreateAccountDto {
         if (typeof(cpf) !== 'string') return null
         if (typeof(type) !== 'string' || (type !== 'COMMON' && type !== 'LAWYER')) return null
 
-        return new CreateAccountDto(name, email, password, cpf, oab, UserType[type])
+        return new CreateAccountDto(name, email, password, cpf, oab ?? null, UserType[type])
     }
 }

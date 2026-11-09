@@ -43,14 +43,17 @@ export class AccountsService {
     let account: Account
     if (type == UserType.LAWYER) {
       let oabIsValid: boolean
-      if (typeof(oab) !== 'string') oabIsValid = false
+      if (typeof(oab) !== 'string') {
+        oabIsValid = false
+      } else {
+        oabIsValid = true
+      }
       /* TODO: 
       implementar aqui chamada a serviço externo que valida
       o numero da OAB no que diz respeito a existencia e ao
       pertencimento a pessoa que foi informada.
       */
-      oabIsValid = true
-      if (!oabIsValid) throw new BadRequestException('The given OAB number is invalid.')
+      if (!oabIsValid) throw new BadRequestException('The given OAB is invalid.')
       
       account = new Account(
         this._uuidGenerator(),
