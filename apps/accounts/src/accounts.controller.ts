@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, BadRequestException } from '@nestjs/common';
 import { CreateAccountDto, CreateAccountValidator, type CreateAccountReq } from './dtos/create-account.dto.js';
-import { CreateAccountService } from './accounts.service.js';
+import { AccountsService } from './accounts.service.js';
 
 @Controller()
 export class AccountsController {
-  constructor(private readonly createAccountService: CreateAccountService) {}
+  constructor(private readonly createAccountService: AccountsService) {}
 
   @Get()
   get(): string {
@@ -16,7 +16,7 @@ export class AccountsController {
     const dto = CreateAccountValidator.toDto(createAccountReq)
     if (!dto) throw new BadRequestException('Dados inválidos!')
 
-    this.createAccountService.create(dto)
+    const account = this.createAccountService.createAccount(dto)
 
     return `
     Rota para cadastrar usuario: 
@@ -26,7 +26,7 @@ export class AccountsController {
     ${dto?.cpf ?? 'no cpf'}
     ${dto?.oab ?? 'no oab'}
     ${dto?.type ?? 'no type'}
-    ${this.createAccountService.create(dto)}
+    ${account}
     `
   }
 }
