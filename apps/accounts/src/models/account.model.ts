@@ -10,5 +10,16 @@ export class Account {
         readonly oab: string | null,
         readonly type: UserType,
         readonly createdAt: Date
-    ) {}
+    ) {
+        if (type == UserType.LAWYER && !oab) throw new Error("Should give a valid OAB number when creating a LAWYER type Account!")
+
+        this.id = id
+        this.name = name
+        this.email = email
+        this.passwordHash = passwordHash
+        this.cpf = cpf
+        this.oab = oab
+        this.type = type
+        this.createdAt = createdAt
+    }
 }

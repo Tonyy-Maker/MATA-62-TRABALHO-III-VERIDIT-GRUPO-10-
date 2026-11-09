@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { CreateAccountDto } from './dtos/create-account.dto.js';
 import { JsonAccountsRepository } from './json-accounts.repository.js';
 import { Account } from './models/account.model.js';
 import { randomUUID } from 'node:crypto';
 import { UserType } from './enums/user-type.enum.js';
-import { ConflictException } from '@nestjs/common';
 
 @Injectable()
 export class AccountsService {
@@ -23,10 +22,26 @@ export class AccountsService {
 
     let account: Account
     if (type == UserType.LAWYER) {
-      //const oabIsValid = validateOAB()
-      //if (!oabIsValid) { throw error }
-      //else {}
-      throw new Error("UserType Lawyer not implemented!")
+      let oabIsValid: boolean
+      if (typeof(oab) !== 'string') oabIsValid = false
+      /* TODO: 
+      implementar aqui chamada a serviço externo que valida
+      o numero da OAB no que diz respeito a existencia e ao
+      pertencimento a pessoa que foi informada.
+      */
+      oabIsValid = true
+      if (!oabIsValid) throw new BadRequestException('The given OAB number is invalid.')
+      
+      account = new Account(
+        this._uuidGenerator(),
+        name,
+        email,
+        this._passwordHasher(password),
+        cpf,
+        oab,
+        type,
+        new Date()
+      )
     } else {
       account = new Account(
         this._uuidGenerator(),
@@ -38,11 +53,10 @@ export class AccountsService {
         type,
         new Date()
       )
-
-      this._repository.create(account)
-
-      return account
     }
+
+    this._repository.create(account)
+    return account
   }
 
   async findByEmail(email: string): Promise<Account | undefined> {
