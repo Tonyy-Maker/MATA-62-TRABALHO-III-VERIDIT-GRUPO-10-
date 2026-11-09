@@ -17,8 +17,18 @@ export class AccountsService {
     const sameEmailAcc = await this._repository.findByEmail(email)
     if (sameEmailAcc) throw new ConflictException("The given email is already being used.")
 
+    /* TODO: 
+    implementar aqui chamada a serviço externo que valida
+    se o email existe.
+    */
+
     const sameCpfAcc = await this._repository.findByCpf(cpf)
     if (sameCpfAcc) throw new ConflictException("The given CPF is already being used.")
+
+    /* TODO: 
+    implementar aqui chamada a serviço externo que valida
+    se o cpf existe e pertence a pessoa cadastrada.
+    */
 
     let account: Account
     if (type == UserType.LAWYER) {

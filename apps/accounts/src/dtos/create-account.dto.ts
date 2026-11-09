@@ -21,6 +21,11 @@ export class CreateAccountDto {
 
     static create(createAccountReq: CreateAccountReq): CreateAccountDto | null {
         const { name, email, password, cpf, oab, type } = createAccountReq
+
+        /* TODO: 
+        implementar aqui validação específica para os formatos de dados recebidos,
+        validação atual é muito generica.
+        */
         
         if (typeof(name) !== 'string') return null
         if (typeof(email) !== 'string') return null
