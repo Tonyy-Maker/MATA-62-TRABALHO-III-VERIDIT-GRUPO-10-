@@ -4,6 +4,7 @@ import { JsonAccountsRepository } from './json-accounts.repository.js';
 import { Account } from './models/account.model.js';
 import { randomUUID } from 'node:crypto';
 import { UserType } from './enums/user-type.enum.js';
+import { ConflictException } from '@nestjs/common';
 
 @Injectable()
 export class AccountsService {
@@ -12,19 +13,13 @@ export class AccountsService {
   private _uuidGenerator = () => randomUUID()
 
   async createAccount(createAccountDto: CreateAccountDto): Promise<Account> {
-    console.log(createAccountDto)
-
     const { name, email, password, cpf, oab, type } = createAccountDto
 
     const sameEmailAcc = await this._repository.findByEmail(email)
-    if (sameEmailAcc) {
-      throw new Error("Already used email!")
-    }
+    if (sameEmailAcc) throw new ConflictException("The given email is already being used.")
 
     const sameCpfAcc = await this._repository.findByCpf(cpf)
-    if (sameCpfAcc) {
-      throw new Error("Already used CPF!")
-    }
+    if (sameCpfAcc) throw new ConflictException("The given CPF is already being used.")
 
     let account: Account
     if (type == UserType.LAWYER) {

@@ -31,9 +31,9 @@ export async function findByEmail(email: string): Promise<Account | undefined> {
 }
 
 export async function findByCpf(cpf: string): Promise<Account | undefined> {
-    //const normalize = (value: string) => value.replace(/\D/g, '')
+    const normalize = (value: string) => value.replace(/\D/g, '')
     const accounts = await readAccounts()
-    return accounts.find(account => account.cpf === cpf)//normalize(account.cpf) === normalize(cpf))
+    return accounts.find(account => normalize(account.cpf) === normalize(cpf))
 }
 
 export class JsonAccountsRepository implements AccountsRepository {
