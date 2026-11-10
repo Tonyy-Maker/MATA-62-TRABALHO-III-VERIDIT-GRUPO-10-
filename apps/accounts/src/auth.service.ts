@@ -1,10 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dtos/login.dto.js';
 import { JsonAccountsRepository } from './json-accounts.repository.js';
 import { PasswordHasher } from './interfaces/password-hasher.interface.js';
 import { AccountResponseDto } from './dtos/account-response.dto.js';
 import { AuthResponseDto } from './dtos/auth-response.dto.js';
+import { JwtService } from './jwt.service.js';
+import * as TokenRepository from './interfaces/token-repository.interface.js';
 
+const TOKEN_REPOSITORY = TokenRepository.TOKEN_REPOSITORY
+type TokenRepository = TokenRepository.TokenRepository
 
 @Injectable()
 export class AuthService {
@@ -17,6 +21,9 @@ export class AuthService {
       return hash == this.hash(password)
     }
   }
+  private _jwtService: JwtService = new JwtService()
+
+  constructor(@Inject(TOKEN_REPOSITORY) private readonly _tokenRepository: TokenRepository) {}
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const account = await this._accountsRepository.findByEmail(loginDto.email)
@@ -25,10 +32,12 @@ export class AuthService {
     const correctPassword = this._passwordHasher.compare(loginDto.password, account.passwordHash)
     if (!correctPassword) throw new UnauthorizedException('Email e/ou senha, inválidos!')
     
-    /* TODO: Implementar JwtService */
+    const accessToken = this._jwtService.sign({ sub: account.id, email: account.email, type: account.type })
 
-    return AuthResponseDto.create('accessToken', 'type', 0, AccountResponseDto.create(account))
+    return AuthResponseDto.create(accessToken, 'Bearer', this._jwtService.expiresInSeconds, AccountResponseDto.create(account))
   }
 
-  logout(token: string): void {}
+  logout(token: string): void {
+    this._tokenRepository.revoke(token)
+  }
 }
