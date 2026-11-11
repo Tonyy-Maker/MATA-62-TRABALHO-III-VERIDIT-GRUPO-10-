@@ -9,16 +9,16 @@ export class AccountsController {
 
   @Get()
   get(): string {
-    return 'Hello World!!!'
+    return 'Hello World!!!';
   }
 
   @Post('accounts')
   async create(@Body() createAccountReq: CreateAccountReq): Promise<AccountResponseDto> {
-    const dto = CreateAccountDto.create(createAccountReq)
-    if (!dto) throw new BadRequestException('Dados inválidos!')
+    const dto = CreateAccountDto.create(createAccountReq);
+    if (!dto) throw new BadRequestException('Dados inválidos!');
 
-    const account = await this.createAccountService.createAccount(dto)
-    
-    return AccountResponseDto.create(account)
+    const account = await this.createAccountService.createAccount(dto);
+
+    return AccountResponseDto.create(account);
   }
 }

@@ -1,13 +1,13 @@
-import { TokenRepository } from "./interfaces/token-repository.interface.js";
+import { TokenRepository } from './interfaces/token-repository.interface.js';
 
 export class InMemoryTokenRepository implements TokenRepository {
-    private _revokedTokens = new Set<string>()
+  private _revokedTokens = new Set<string>();
 
-    isRevoked(jti: string): boolean {
-        return this._revokedTokens.has(jti)
-    }
+  isRevoked(jti: string): boolean {
+    return this._revokedTokens.has(jti);
+  }
 
-    revoke(jti: string): void {
-        this._revokedTokens.add(jti)
-    }
+  revoke(jti: string): void {
+    this._revokedTokens.add(jti);
+  }
 }

@@ -1,4 +1,4 @@
 export enum UserType {
-    COMMON,
-    LAWYER
+  COMMON,
+  LAWYER,
 }

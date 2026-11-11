@@ -5,9 +5,13 @@
   "description": "Sistema para captura de registros de provas online",
   "main": "index.js",
   "scripts": {
+    "build": "pnpm --filter accounts build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "oxlint ."
+    "lint": "oxlint .",
+    "test": "pnpm --filter accounts test",
+    "test:cov": "pnpm --filter accounts test:cov",
+    "test:e2e": "pnpm --filter accounts test:e2e"
   },
   "keywords": [],
   "author": "",

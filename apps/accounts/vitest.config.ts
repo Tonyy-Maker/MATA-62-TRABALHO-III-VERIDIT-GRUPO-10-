@@ -8,5 +8,8 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
+    env: {
+      JWT_SECRET: 'jwt_secret_para_testes_com_mais_de_32_caracteres_12345',
+    },
   },
 });

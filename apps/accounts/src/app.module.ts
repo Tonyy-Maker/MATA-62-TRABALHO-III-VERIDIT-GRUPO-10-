@@ -14,7 +14,7 @@ import { InMemoryTokenRepository } from './inmemory-token.repository.js';
     AccountsService,
     AuthService,
     AuthGuard,
-    { provide: TOKEN_REPOSITORY, useClass: InMemoryTokenRepository }
+    { provide: TOKEN_REPOSITORY, useClass: InMemoryTokenRepository },
   ],
 })
 export class AppModule {}

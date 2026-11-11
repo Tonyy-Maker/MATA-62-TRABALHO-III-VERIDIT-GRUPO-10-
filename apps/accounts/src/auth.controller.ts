@@ -1,4 +1,13 @@
-import { Controller, Req, Get, Post, Body, HttpCode, BadRequestException, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Req,
+  Get,
+  Post,
+  Body,
+  HttpCode,
+  BadRequestException,
+  UseGuards,
+} from '@nestjs/common';
 import { LoginDto, type LoginReq } from './dtos/login.dto.js';
 import { AuthResponseDto } from './dtos/auth-response.dto.js';
 import { AuthService } from './auth.service.js';
@@ -10,23 +19,24 @@ export class AuthController {
 
   @Get()
   get(): string {
-    return 'Auth'
+    return 'Auth';
   }
 
   @Post('auth/login')
+  @HttpCode(200)
   async login(@Body() loginReq: LoginReq): Promise<AuthResponseDto> {
-    const dto = LoginDto.create(loginReq)
-    if (!dto) throw new BadRequestException('Dados inválidos!')
+    const dto = LoginDto.create(loginReq);
+    if (!dto) throw new BadRequestException('Dados inválidos!');
 
-    const response = await this.authService.login(dto)
-    
-    return response
+    const response = await this.authService.login(dto);
+
+    return response;
   }
 
   @Post('auth/logout')
   @HttpCode(204)
   @UseGuards(AuthGuard)
   logout(@Req() req: AuthenticatedRequest): void {
-    this.authService.logout(req.user.jti)
+    this.authService.logout(req.user.jti);
   }
 }
