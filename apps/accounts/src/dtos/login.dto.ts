@@ -1,25 +1,24 @@
+import { isValidEmail } from '../validators/validators.js';
+
 export type LoginReq = {
-    email: string,
-    password: string
-}
+  email: string;
+  password: string;
+};
 
 export class LoginDto {
-    private constructor(
-        readonly email: string,
-        readonly password: string
-    ) {}
+  private constructor(
+    readonly email: string,
+    readonly password: string,
+  ) {}
 
-    static create(loginReq: LoginReq): LoginReq | null {
-        const { email, password } = loginReq
+  static create(loginReq: LoginReq): LoginDto | null {
+    if (!loginReq || typeof loginReq !== 'object') return null;
 
-        /* TODO: 
-        implementar aqui validação específica para os formatos de dados recebidos,
-        validação atual é muito generica.
-        */
-        
-        if (typeof(email) !== 'string') return null
-        if (typeof(password) !== 'string') return null
+    const { email, password } = loginReq;
 
-        return new LoginDto(email, password)
-    }
+    if (!isValidEmail(email)) return null;
+    if (typeof password !== 'string' || password.length === 0) return null;
+
+    return new LoginDto(email.trim().toLowerCase(), password);
+  }
 }

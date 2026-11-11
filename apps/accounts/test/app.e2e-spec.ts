@@ -7,6 +7,11 @@ import { AppModule } from './../src/app.module.js';
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
 
+  beforeAll(() => {
+    process.env.JWT_SECRET =
+      process.env.JWT_SECRET ?? 'jwt_secret_para_testes_com_mais_de_32_caracteres_12345';
+  });
+
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -17,10 +22,7 @@ describe('AppController (e2e)', () => {
   });
 
   it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!!!');
+    return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!!!');
   });
 
   afterEach(async () => {

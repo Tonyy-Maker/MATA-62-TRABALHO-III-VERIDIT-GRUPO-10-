@@ -1,38 +1,65 @@
-import { UserType } from '../enums/user-type.enum.js'
+import { UserType } from '../enums/user-type.enum.js';
+import {
+  isValidCpf,
+  isValidEmail,
+  isValidName,
+  isValidOab,
+  isValidPassword,
+  normalizeCpf,
+  normalizeOab,
+} from '../validators/validators.js';
 
 export type CreateAccountReq = {
-    name: string,
-    email: string,
-    password: string, 
-    cpf: string,
-    oab?: string,
-    type: string
-}
+  name: string;
+  email: string;
+  password: string;
+  cpf: string;
+  oab?: string;
+  type: string;
+};
 
 export class CreateAccountDto {
-    private constructor(
-        readonly name: string,
-        readonly email: string,
-        readonly password: string,
-        readonly cpf: string,
-        readonly oab: string | null,
-        readonly type: UserType,
-    ) {}
+  private constructor(
+    readonly name: string,
+    readonly email: string,
+    readonly password: string,
+    readonly cpf: string,
+    readonly oab: string | null,
+    readonly type: UserType,
+  ) {}
 
-    static create(createAccountReq: CreateAccountReq): CreateAccountDto | null {
-        const { name, email, password, cpf, oab, type } = createAccountReq
+  static create(createAccountReq: CreateAccountReq): CreateAccountDto | null {
+    if (!createAccountReq || typeof createAccountReq !== 'object') return null;
 
-        /* TODO: 
-        implementar aqui validação específica para os formatos de dados recebidos,
-        validação atual é muito generica.
-        */
-        
-        if (typeof(name) !== 'string') return null
-        if (typeof(email) !== 'string') return null
-        if (typeof(password) !== 'string') return null
-        if (typeof(cpf) !== 'string') return null
-        if (typeof(type) !== 'string' || (type !== 'COMMON' && type !== 'LAWYER')) return null
+    const { name, email, password, cpf, oab, type } = createAccountReq;
 
-        return new CreateAccountDto(name, email, password, cpf, oab ?? null, UserType[type])
+    if (!isValidName(name)) return null;
+    if (!isValidEmail(email)) return null;
+    if (!isValidPassword(password)) return null;
+    if (!isValidCpf(cpf)) return null;
+    if (typeof type !== 'string' || (type !== 'COMMON' && type !== 'LAWYER')) return null;
+
+    const userType = UserType[type];
+
+    if (userType === UserType.LAWYER) {
+      if (!isValidOab(oab)) return null;
+      return new CreateAccountDto(
+        name.trim(),
+        email.trim().toLowerCase(),
+        password,
+        normalizeCpf(cpf),
+        normalizeOab(oab),
+        userType,
+      );
     }
+
+    return new CreateAccountDto(
+      name.trim(),
+      email.trim().toLowerCase(),
+      password,
+      normalizeCpf(cpf),
+      null,
+      userType,
+    );
+  }
 }
