@@ -99,9 +99,16 @@ classDiagram
         +revoke(jti: string) void
     }
 
-    class JsonTokenRepository {
+    class InMemoryTokenRepository {
+        -Set~string~ _revokedTokens
         +isRevoked(jti: string) boolean
         +revoke(jti: string) void
+    }
+
+    class JsonAccountsRepository {
+        +findByEmail(email: string) Account
+        +findByCpf(cpf: string) Account
+        +create(account: Account) Account
     }
 
     class PasswordHasher {
@@ -116,20 +123,21 @@ classDiagram
     }
 
     class JwtService {
-        +sign(payload: JwtPayload) string
+        -string _secret
+        -NestJwt _jwt
+        +number expiresInSeconds
+        +sign(data: Pick~JwtPayload, 'sub' | 'email' | 'type'~) string
         +verify(token: string) JwtPayload
     }
 
     class AuthGuard {
-        +canActivate() boolean
+        -JwtService _jwtService
+        -TokenRepository _tokenRepository
+        +canActivate(context: ExecutionContext) boolean
     }
 
     class AccountsJsonFile {
         accounts.json
-    }
-
-    class RevokedTokensJsonFile {
-        revoked-tokens.json
     }
 
     AccountsController --> AccountsService
@@ -143,11 +151,10 @@ classDiagram
     AuthService --> TokenRepository
 
     JsonAccountsRepository ..|> AccountsRepository
-    JsonTokenRepository ..|> TokenRepository
+    InMemoryTokenRepository ..|> TokenRepository
     Argon2PasswordHasher ..|> PasswordHasher
 
     JsonAccountsRepository --> AccountsJsonFile
-    JsonTokenRepository --> RevokedTokensJsonFile
 
     AuthGuard --> JwtService
     AuthGuard --> TokenRepository
@@ -160,8 +167,10 @@ classDiagram
 
 ## Observações
 
-1. `AccountsRepository`, `TokenRepository` e `PasswordHasher` são interfaces. Isso permite substituir suas implementações sem alterar os serviços que dependem delas.
-2. A senha original não deve ser armazenada. A entidade `Account` mantém somente `passwordHash`.
-3. O campo `oab` é aplicável a contas do tipo `LAWYER`.
-4. Nesta implementação inicial, `AuthGuard` está representado dentro do Serviço de Contas, sem um API Gateway. Essa é uma simplificação em relação à arquitetura prevista na ADR-0007.
-5. A persistência em arquivos JSON é provisória e pressupõe, nesta etapa, uma execução controlada com uma única instância da aplicação.
+1. `AccountsRepository`, `TokenRepository` e `PasswordHasher` são interfaces desacopladas. Isso permite substituir suas implementações sem alterar os serviços dependentes.
+2. A entidade `Account` armazena exclusivamente `passwordHash`, nunca a senha em texto puro. O `AccountResponseDto` não expõe a senha nem seu hash.
+3. O campo `oab` é obrigatório para contas do tipo `LAWYER` e nulo para `COMMON`. A entidade valida essa restrição lançando exceção caso violada.
+4. O `TokenRepository` está implementado como `InMemoryTokenRepository` utilizando `Set<string>` para controle de tokens revogados (`jti`) em memória durante o logout (`POST /auth/logout`, retornando HTTP 204). A persistência de longo prazo ou distribuída (Redis/PostgreSQL) poderá ser acoplada futuramente através da mesma interface.
+5. O `PasswordHasher` possui implementação inline temporária nos serviços para prototipação e deverá ser substituído pela implementação concreta com Argon2 conforme previsto na ADR-0001.
+6. A persistência em `accounts.json` via `JsonAccountsRepository` é provisória para execução local controlada em instância única.
+7. O `AuthGuard` reside temporariamente no próprio serviço de contas para proteger endpoints internos (como `/auth/logout`), enquanto o API Gateway centralizado (ADR-0007) não é introduzido.

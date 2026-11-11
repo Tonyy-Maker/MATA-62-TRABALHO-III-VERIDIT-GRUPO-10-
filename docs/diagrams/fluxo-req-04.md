@@ -15,6 +15,11 @@ flowchart TD
     I --> J{Registro concluído?}
     J -- Não --> K[Retorna HTTP 500]
     K --> Z
-    J -- Sim --> L[Retorna HTTP 200 OK]
+    J -- Sim --> L[Retorna HTTP 204 No Content]
     L --> Z
 ```
+
+## Observações
+
+- O endpoint `POST /auth/logout` responde com status **HTTP 204 No Content** quando a revogação do token é processada com sucesso.
+- O `TokenRepository` atual utiliza implementação em memória (`InMemoryTokenRepository`), armazenando os identificadores `jti` revogados em um `Set<string>`.

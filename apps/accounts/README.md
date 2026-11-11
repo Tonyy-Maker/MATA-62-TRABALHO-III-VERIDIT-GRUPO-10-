@@ -1,132 +1,172 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Serviço de Contas e Autenticação (`apps/accounts`)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Microsserviço responsável pela **criação de contas**, **validação cadastral** e **gerenciamento de sessões/autenticação** (emissão e revogação de tokens JWT) do sistema **Veridit**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 📋 Requisitos Atendidos
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **REQ 01 — Cadastro de Usuário:** Permite o cadastro de usuários comuns (`COMMON`) e advogados (`LAWYER`), exigindo número de inscrição na OAB para advogados e validando unicidade de CPF e e-mail.
+- **REQ 03 — Autenticação:** Validação de credenciais e geração de token JWT assinado digitalmente com chave secreta segura.
+- **REQ 04 — Logout:** Invalidação imediata do token de acesso através de armazenamento do identificador único do token (`jti`) em blacklist.
+- **Decisão D1:** Suporte aos tipos de usuário cadastráveis definidos para a primeira versão da plataforma.
 
-## Project setup
+---
 
-```bash
-$ pnpm install
+## 🔌 Endpoints da API
+
+### 1. `POST /accounts` — Cadastro de Usuário
+
+Cria uma nova conta de usuário.
+
+- **Payload de Exemplo (Usuário Comum):**
+
+  ```json
+  {
+    "name": "Maria Silva",
+    "email": "maria@example.com",
+    "password": "senha-segura-123",
+    "cpf": "123.456.789-00",
+    "type": "COMMON"
+  }
+  ```
+
+- **Payload de Exemplo (Advogado):**
+
+  ```json
+  {
+    "name": "Dra. Beatriz Santos",
+    "email": "beatriz@adv.oab.br",
+    "password": "senha-segura-123",
+    "cpf": "987.654.321-11",
+    "type": "LAWYER",
+    "oab": "BA12345"
+  }
+  ```
+
+- **Códigos de Resposta:**
+  - `201 Created`: Retorna o objeto da conta criada (`id`, `name`, `email`, `cpf`, `oab`, `type`, `createAt`), omitindo o hash da senha.
+  - `400 Bad Request`: Dados inválidos ou campo `oab` ausente para perfil `LAWYER`.
+  - `409 Conflict`: E-mail ou CPF já cadastrado no sistema.
+
+---
+
+### 2. `POST /auth/login` — Autenticação
+
+Autentica o usuário e emite um token JWT.
+
+- **Payload:**
+
+  ```json
+  {
+    "email": "maria@example.com",
+    "password": "senha-segura-123"
+  }
+  ```
+
+- **Resposta de Sucesso (`200 OK`):**
+
+  ```json
+  {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": 1200,
+    "accountResponseDto": {
+      "id": "e4b6c310-...",
+      "name": "Maria Silva",
+      "email": "maria@example.com",
+      "cpf": "123.456.789-00",
+      "oab": null,
+      "type": 0,
+      "createAt": "2026-11-10T20:00:00.000Z"
+    }
+  }
+  ```
+
+- **Códigos de Erro:**
+  - `400 Bad Request`: E-mail ou senha ausentes.
+  - `401 Unauthorized`: E-mail não encontrado ou senha incorreta.
+
+---
+
+### 3. `POST /auth/logout` — Logout
+
+Invalida o token JWT atual.
+
+- **Headers:**
+
+  ```http
+  Authorization: Bearer <seu_token_jwt>
+  ```
+
+- **Códigos de Resposta:**
+  - `204 No Content`: Token revogado com sucesso (sem corpo de resposta).
+  - `401 Unauthorized`: Token ausente, inválido, expirado ou já revogado anteriormente.
+
+---
+
+### 4. `GET /` — Healthcheck
+
+Retorna uma mensagem de status do serviço.
+
+---
+
+## ⚙️ Variáveis de Ambiente
+
+Crie um arquivo `.env` na pasta `apps/accounts/` ou defina as variáveis no ambiente:
+
+```env
+PORT=3000
+JWT_SECRET=sua_chave_secreta_super_segura_com_ao_menos_32_caracteres
+JWT_EXPIRATION=1200
 ```
 
-## Compile and run the project
+> **Aviso de Segurança:** O serviço valida no bootstrap se `JWT_SECRET` possui no mínimo 32 caracteres, abortando a inicialização caso a chave seja fraca ou ausente.
 
-```bash
-# development
-$ pnpm run start
+---
 
-# watch mode
-$ pnpm run start:dev
+## 🏗️ Arquitetura e Inversão de Dependências
 
-# production mode
-$ pnpm run start:prod
+O serviço é construído em NestJS com TypeScript (módulos ECMAScript nativos) e desacoplado através de interfaces:
+
+```text
+src/
+├── dtos/                     # Data Transfer Objects com validação e criação estática
+│   ├── account-response.dto.ts
+│   ├── auth-response.dto.ts
+│   ├── create-account.dto.ts
+│   └── login.dto.ts
+├── enums/                    # Tipos enumerados (ex.: UserType: COMMON, LAWYER)
+├── interfaces/               # Contratos desacoplados
+│   ├── accounts-repository.interface.ts
+│   ├── jwt-payload.interface.ts
+│   ├── password-hasher.interface.ts
+│   └── token-repository.interface.ts
+├── models/                   # Entidade de domínio Account
+├── accounts.controller.ts    # Controlador de rotas de criação de contas
+├── accounts.service.ts       # Regras de negócio de contas e unicidade
+├── auth.controller.ts        # Controlador de login e logout
+├── auth.guard.ts             # Guard para validação de Bearer JWT e checagem de revogação
+├── auth.service.ts           # Regras de negócio de autenticação
+├── inmemory-token.repository.ts # Repositório em memória para tokens revogados
+├── json-accounts.repository.ts  # Repositório baseado em arquivo accounts.json
+├── jwt.service.ts            # Emissão e verificação de tokens JWT via @nestjs/jwt
+└── app.module.ts             # Módulo principal com registro de providers e controllers
 ```
 
-## Run tests
+---
+
+## 🚀 Execução e Testes
+
+A partir da raiz do monorepo:
 
 ```bash
-# unit tests
-$ pnpm run test
+# Executar em modo desenvolvimento (watch):
+pnpm --filter accounts start:dev
 
-# e2e tests
-$ pnpm run test:e2e
+# Executar testes unitários com Vitest:
+pnpm --filter accounts test
 
-# test coverage
-$ pnpm run test:cov
+# Executar testes end-to-end (e2e):
+pnpm --filter accounts test:e2e
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project, run this and approve the code it prints at [observe.nestjs.com/link](https://observe.nestjs.com/link) - signing up for free if you have no account:
-
-```bash
-$ npx @nestjs/observe link
-```
-
-It installs `@nestjs/observe`, wires it into `AppModule` and `main.ts`, and writes the app key and secret into `.env`, which every `nest start` script (`start`, `start:dev`, `start:debug`) then loads. In production, set `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment instead.
-
-Or do it by hand:
-
-```bash
-$ pnpm install @nestjs/observe
-```
-
-Then follow the [setup guide](https://docs.nestjs.com/observability/sdk) - it takes a single import and an app key.
-
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

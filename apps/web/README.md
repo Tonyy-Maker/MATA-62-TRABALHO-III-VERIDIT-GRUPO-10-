@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Interface Web do Veridit (`apps/web`)
 
-## Getting Started
+Aplicação frontend do sistema **Veridit**, construída com **Next.js 15+** (App Router), React 19 e TypeScript.
 
-First, run the development server:
+---
+
+## 🎯 Objetivo da Aplicação
+
+A interface web atende a dois perfis principais de usuários (conforme a decisão [D1](file:///home/antigravity/Tonyy-Maker/MATA-62-TRABALHO-III-VERIDIT-GRUPO-10-/docs/D1.md)):
+
+- **Usuários Comuns:** Cadastro de conta, login, aquisição de pacotes de créditos (decisão [D2](file:///home/antigravity/Tonyy-Maker/MATA-62-TRABALHO-III-VERIDIT-GRUPO-10-/docs/D2.md)), solicitação de capturas de provas digitais e acompanhamento do status.
+- **Advogados:** Gestão profissional de evidências para processos judiciais, verificação da integridade de relatórios e arquivamento de certidões probatórias.
+
+---
+
+## 🚀 Execução em Desenvolvimento
+
+A partir da raiz do monorepo:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm --filter web dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000) no seu navegador para visualizar a interface.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Estrutura do Projeto
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+src/
+└── app/
+    ├── favicon.ico
+    ├── globals.css      # Estilização global da aplicação
+    ├── layout.tsx       # Layout raiz (RootLayout)
+    ├── page.module.css  # Estilos modulares da página inicial
+    └── page.tsx         # Página inicial
+```

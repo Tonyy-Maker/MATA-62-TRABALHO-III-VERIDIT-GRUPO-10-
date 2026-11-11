@@ -1,132 +1,99 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Serviço de Registros de Evidências (`apps/records`)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Microsserviço responsável pela **consulta**, **listagem paginada** e **detalhamento de registros e provas capturadas** no sistema **Veridit**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 📋 Requisitos do Serviço
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **REQ 12 — Listar Registros:** Consulta paginada dos registros pertencentes ao usuário autenticado, com suporte a filtro por status (`IN_PROGRESS`, `COMPLETED`, `FAILED`) e ordenação decrescente por data de início (`startedAt`).
+- **REQ 13 — Visualizar Registro:** Retorno dos detalhes completos de um registro de prova pelo seu identificador único (`recordId`), garantindo que apenas o usuário responsável tenha acesso às evidências e metadados.
 
-## Project setup
+---
 
-```bash
-$ pnpm install
-```
+## 🔐 Integração e Autenticação
 
-## Compile and run the project
+Conforme a [ADR-0007](file:///home/antigravity/Tonyy-Maker/MATA-62-TRABALHO-III-VERIDIT-GRUPO-10-/docs/adrs/ADR007.md), a autenticação de tokens JWT ocorre no **API Gateway**:
 
-```bash
-# development
-$ pnpm run start
+1. As requisições externas chegam ao Gateway com o cabeçalho `Authorization: Bearer <token_jwt>`.
+2. O Gateway valida o token e injeta o cabeçalho interno `X-User-Id: <identificador_usuario>`.
+3. O `RecordsController` valida obrigatoriamente a presença do `X-User-Id`:
+   - Se ausente: responde imediatamente com **`401 Unauthorized`**.
+   - Se presente: delega para o `RecordsService`, garantindo o isolamento multitenant dos dados.
 
-# watch mode
-$ pnpm run start:dev
+---
 
-# production mode
-$ pnpm run start:prod
-```
+## 🔌 Contratos de API Planejados
 
-## Run tests
+### 1. `GET /records` — Listar Registros (REQ 12)
 
-```bash
-# unit tests
-$ pnpm run test
+- **Query Parameters:**
+  - `page` (número, padrão: `1`)
+  - `pageSize` (número, padrão: `10`)
+  - `status` (opcional: `IN_PROGRESS`, `COMPLETED`, `FAILED`)
+- **Headers Obrigatórios:** `X-User-Id: <userId>`
+- **Resposta de Sucesso (`200 OK`):**
+  ```json
+  {
+    "items": [
+      {
+        "recordId": "rec_123456",
+        "title": "Registro de publicação ofensiva",
+        "startedAt": "2026-11-10T14:30:00Z",
+        "finishedAt": "2026-11-10T14:31:15Z",
+        "status": "COMPLETED"
+      }
+    ],
+    "page": 1,
+    "pageSize": 10,
+    "total": 1
+  }
+  ```
 
-# e2e tests
-$ pnpm run test:e2e
+---
 
-# test coverage
-$ pnpm run test:cov
-```
+### 2. `GET /records/:id` — Detalhes do Registro (REQ 13)
 
-## Deployment
+- **Parâmetros de Rota:** `id` (identificador do registro)
+- **Headers Obrigatórios:** `X-User-Id: <userId>`
+- **Resposta de Sucesso (`200 OK`):**
+  ```json
+  {
+    "recordId": "rec_123456",
+    "title": "Registro de publicação ofensiva",
+    "startedAt": "2026-11-10T14:30:00Z",
+    "finishedAt": "2026-11-10T14:31:15Z",
+    "status": "COMPLETED",
+    "dataType": ["IMAGE", "VIDEO"],
+    "nOfImages": 4,
+    "nOfVideos": 1,
+    "userId": "usr_987654"
+  }
+  ```
+- **Respostas de Erro:**
+  - `401 Unauthorized`: Cabeçalho `X-User-Id` ausente.
+  - `404 Not Found`: Registro não encontrado ou pertencente a outro usuário (`RecordNotFound`).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 🏗️ Modelagem de Domínio
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+O diagrama detalhado de classes e fluxos do serviço de registros pode ser consultado em:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- [Diagrama UML de Classes](file:///home/antigravity/Tonyy-Maker/MATA-62-TRABALHO-III-VERIDIT-GRUPO-10-/docs/diagrams/uml-records.md)
+- [Fluxo do REQ 12](file:///home/antigravity/Tonyy-Maker/MATA-62-TRABALHO-III-VERIDIT-GRUPO-10-/docs/diagrams/fluxo-req-12.md) e [Sequência do REQ 12](file:///home/antigravity/Tonyy-Maker/MATA-62-TRABALHO-III-VERIDIT-GRUPO-10-/docs/diagrams/sequencia-req-12.md)
+- [Fluxo do REQ 13](file:///home/antigravity/Tonyy-Maker/MATA-62-TRABALHO-III-VERIDIT-GRUPO-10-/docs/diagrams/fluxo-req-13.md) e [Sequência do REQ 13](file:///home/antigravity/Tonyy-Maker/MATA-62-TRABALHO-III-VERIDIT-GRUPO-10-/docs/diagrams/sequencia-req-13.md)
 
-## Observability
+---
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+## 🚀 Execução e Testes
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project, run this and approve the code it prints at [observe.nestjs.com/link](https://observe.nestjs.com/link) - signing up for free if you have no account:
-
-```bash
-$ npx @nestjs/observe link
-```
-
-It installs `@nestjs/observe`, wires it into `AppModule` and `main.ts`, and writes the app key and secret into `.env`, which every `nest start` script (`start`, `start:dev`, `start:debug`) then loads. In production, set `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment instead.
-
-Or do it by hand:
+A partir da raiz do monorepo:
 
 ```bash
-$ pnpm install @nestjs/observe
+# Executar em modo desenvolvimento:
+pnpm --filter records start:dev
+
+# Executar testes com Vitest:
+pnpm --filter records test
 ```
-
-Then follow the [setup guide](https://docs.nestjs.com/observability/sdk) - it takes a single import and an app key.
-
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
